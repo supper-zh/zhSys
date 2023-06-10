@@ -1,6 +1,7 @@
 package com.sea.zh.controller;
 
 import com.sea.zh.model.Ship;
+import com.sea.zh.model.ShipInfo;
 import com.sea.zh.service.ShipService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +23,11 @@ public class DataController {
         this.shipService = shipService;
     }
 
-
+    @GetMapping("/ShipInfo/{targetId}/{mmsi}")
+    public ResponseEntity<List<ShipInfo>> getShipDetail(@PathVariable String targetId, @PathVariable int mmsi) {
+        List<ShipInfo> shipInfo = shipService.getShipDetail(targetId, mmsi);
+        return ResponseEntity.ok(shipInfo);
+    }
 
 
     @GetMapping("/targetId/{targetId}")

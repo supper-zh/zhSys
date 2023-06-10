@@ -1,6 +1,7 @@
 package com.sea.zh.service;
 
 import com.sea.zh.model.Ship;
+import com.sea.zh.model.ShipInfo;
 import com.sea.zh.repository.ShipRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -64,6 +65,11 @@ public class ShipService {
     public List<Ship> getShipsBySpeedRange(double minSpeed, double maxSpeed) {
         return shipRepository.findBySpeedBetween(minSpeed, maxSpeed);
     }
+    public List<ShipInfo> getShipDetail(String targetId, int mmsi){
+
+        List<ShipInfo> shipInfo = shipRepository.findShipDetail(targetId, mmsi);
+        return shipInfo;
+    }
 
     public List<Ship> getShipsByState(int state) {
         return shipRepository.findByState(state);
@@ -125,5 +131,7 @@ public class ShipService {
 //        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 //        return shipRepository.findByStatePage(state, pageable);
 //    }
+
+
 
 }

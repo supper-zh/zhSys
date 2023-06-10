@@ -1226,5 +1226,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 });
-
-

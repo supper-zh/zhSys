@@ -9,98 +9,45 @@
 
 </head>
 <body>
-
-
-
-<!--<div class="sidebar">-->
-<div class="options">
-    <h2>Search Options</h2>
-    <ul>
-        <li>
-            <h3><a href="#searchBytargetId">Search by targetId</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByMMSI">Search by MMSI</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByType">Search by Type</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByState">Search by State</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByLength">Search by over length </a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByLengthRange">Search by Length Range</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByLongitudeRange">Search by Longitude Range</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByLatitudeRange">Search by Latitude Range</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByLatLon">Search by Latitude and Longitude Range</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByTimestamp">Search by Timestamp Range</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchBySpeed">Search by Speed Range</a></h3>
-        </li>
-        <li>
-            <h3><a href="#searchByMMSIList">Search by MMSI List</a></h3>
-        </li>
-    </ul>
+<div>
+<!--<button id="getTokenButton">获取Token</button>-->
+<button id="startWebSocketButton">开启连接接收实时数据</button>
+<button id="stopWebSocketButton">关闭连接停止接收数据</button>
 </div>
-
-<!--    <h2>本地数据库操作</h2>-->
-<!--    <a href="/db/token">测试连接：获取token</a><br>-->
-<!--    <a href="/db/start">开启WebSocket连接，开始接收数据</a><br>-->
-<!--    <a href="/db/stop">关闭WebSocket连接，停止接收数据</a><br>-->
-
+<div id="responseContainer" style="margin-top: 20px;"></div>
 
 <div class="main">
-    <button id="startButton">打开定时器（定期刷新token）并开始接收数据</button>
-    <button id="stopButton">关闭定时器并停止接收数据</button><br>
+<!--    <button id="startButton">打开定时器（定期刷新token）并开始接收数据</button>-->
+<!--    <button id="stopButton">关闭定时器并停止接收数据</button><br>-->
 
-    <h1>Ships data </h1>
-    <h3 id="searchBytargetId">Search by targetId</h3>
+    <h1>船舶历史动态信息查询</h1>
+    <h3 id="searchBytargetId">按目标ID查询</h3>
     <form id="targetIdForm">
         <input type="text" id="targetIdInput" placeholder="Enter targetId">
         <button type="submit">Search</button>
     </form>
 
-    <h3 id="searchByMMSI">Search by MMSI</h3>
+    <h3 id="searchByMMSI">按MMSI查询</h3>
     <form id="searchForm">
         <input type="text" id="mmsiInput" placeholder="Enter MMSI">
         <button type="submit">Search</button>
     </form>
 
-    <h3 id="searchByType">Search by Type</h3>
+    <h3 id="searchByType">按目标类型查询</h3>
     <form id="typeForm">
         <input type="text" id="typeInput" placeholder="Enter Type">
         <button type="submit">Search</button>
     </form>
 
-    <h3 id="searchByState">Search by State</h3>
+    <h3 id="searchByState">按船舶状态查询</h3>
     <p>备注：单独通过state查询到的数据量巨大，导致性能问题。故采用分批加载，需等待加载完毕后导出。</p>
     <form id="stateForm">
         <input type="text" id="stateInput" placeholder="Enter State">
         <button type="submit">Search</button>
     </form>
 
-    <h3 id="searchByLatLon">Search by Latitude and Longitude Range</h3>
-    <form id="latLonForm">
-        <input type="text" id="startLatInput" placeholder="Start Latitude">
-        <input type="text" id="endLatInput" placeholder="End Latitude">
-        <input type="text" id="startLonInput" placeholder="Start Longitude">
-        <input type="text" id="endLonInput" placeholder="End Longitude">
-        <button type="submit">Search</button>
-    </form>
 
-    <h3 id="searchByTime">Search by Time Range</h3>
+    <h3 id="searchByTime">按时间范围查询</h3>
     <p>输入示例：2023-05-30 16:49:38 &nbsp;&nbsp; 2023-06-01 23:38:01</p>
     <form id="timeForm">
         <input type="text" id="startTimeInput" placeholder="Start Time(YYYY-MM-DD HH:mm:ss)" pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" title="Please enter a valid time format (YYYY-MM-DD HH:mm:ss)">
@@ -108,35 +55,44 @@
         <button type="submit">Search</button>
     </form>
 
-    <h3 id="searchByLength">Search by length </h3>
+    <h3 id="searchByLength">按特定长度查询</h3>
     <form id="lengthForm">
         <input type="text" id="lengthInput" placeholder="Enter Length">
         <button type="submit">Search</button>
     </form>
-    <h3 id="searchByLengthRange">Search by Length Range</h3>
+    <h3 id="searchByLengthRange">按长度范围查询</h3>
     <form id="lengthRangeForm">
         <input type="text" id="minLength" placeholder="Enter minLength">
         <input type="text" id="maxLength" placeholder="Enter maxLength">
         <button type="submit">Search</button>
     </form>
 <!--    -->
-    <h3 id="searchByLongitudeRange">Search by Longitude Range</h3>
+    <h3 id="searchByLongitudeRange">按经度范围查询</h3>
     <form id="LongitudeRangeForm">
         <input type="text" id="LongitudeStart" placeholder="Enter LongitudeStart">
         <input type="text" id="LongitudeEnd" placeholder="LongitudeEnd">
         <button type="submit">Search</button>
     </form>
-    <h3 id="searchByLatitudeRange">Search by Latitude Range</h3>
+    <h3 id="searchByLatitudeRange">按维度范围查询</h3>
     <form id="LatitudeRangeForm">
         <input type="text" id="LatitudeStart" placeholder="Enter LatitudeStart">
         <input type="text" id="LatitudeEnd" placeholder="Enter LatitudeEnd">
         <button type="submit">Search</button>
     </form>
 
-    <h3 id="searchBySpeed">Search by Speed Range</h3>
+    <h3 id="searchBySpeed">按速度范围查询</h3>
     <form id="speedForm">
         <input type="text" id="minSpeedInput" placeholder="Min Speed">
         <input type="text" id="maxSpeedInput" placeholder="Max Speed">
+        <button type="submit">Search</button>
+    </form>
+
+    <h3 id="searchByLatLon">按经度和纬度范围查询</h3>
+    <form id="latLonForm">
+        <input type="text" id="startLatInput" placeholder="Start Latitude">
+        <input type="text" id="endLatInput" placeholder="End Latitude">
+        <input type="text" id="startLonInput" placeholder="Start Longitude">
+        <input type="text" id="endLonInput" placeholder="End Longitude">
         <button type="submit">Search</button>
     </form>
 
@@ -176,7 +132,25 @@
     </form>
 
 
-    <h1>Ship Info List</h1>
+    <h3 id="findShipsInfo">查询船舶详细信息</h3>
+    目前仅支持csv文件， CSV 文件的格式：<br>
+    targetId1,mmsi1<br>
+    targetId2,mmsi2<br>
+    targetId3,mmsi3<br>
+    ...
+
+    <form id="shipsInfoForm">
+        <input type="file" id="fileInput" accept=".xlsx, .csv">
+        <button type="submit">Search</button>
+    </form>
+    <h2>船舶详细信息展示区</h2>
+    <div id="resultContainer">
+        展示查询数据区...
+    </div>
+
+
+
+    <h1>查询结果列表</h1>
     <button id="exportCSVButton">Export as CSV</button>
     <button id="exportExcelButton">Export as Excel</button>
     <table id="shipList">
@@ -202,10 +176,11 @@
         </tbody>
     </table>
 
-
 </div>
 <script type="text/javascript" src="./js/xlsx.core.min.js"></script>
+<script src="js/websocketConnect.js"></script>
 <script src="js/script.js"></script>
+<script src="js/fileReader.js"></script>
 <script src="js/Timer.js"></script>
 <script src="js/pad.js"></script>
 </body>

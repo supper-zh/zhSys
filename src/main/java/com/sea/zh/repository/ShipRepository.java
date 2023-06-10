@@ -1,6 +1,7 @@
 package com.sea.zh.repository;
 
 import com.sea.zh.model.Ship;
+import com.sea.zh.model.ShipInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Query;
@@ -42,4 +43,6 @@ public interface ShipRepository extends MongoRepository<Ship, String> {
 
 
     List<Ship> findByLength(int length);
+
+    List<ShipInfo> findShipDetail(String targetId, int mmsi);
 }

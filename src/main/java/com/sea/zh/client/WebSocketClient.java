@@ -4,40 +4,30 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.sea.zh.service.TokenService;
+import com.sea.zh.service.ApiService;
 import okhttp3.*;
 import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+
 @ConfigurationProperties
+//@Configuration
+//@EnableScheduling
 @Component
+//public class WebSocketClient implements SchedulingConfigurer {
 public class WebSocketClient {
     private final OkHttpClient httpClient;
     private WebSocket webSocket;
-    private final TokenService tokenService;
-
-//    使用@Value注解将配置值注入
-//    @Value("${spring.data.mongodb.host}")
-//    private String mongoHost;
-//
-//    @Value("${spring.data.mongodb.port}")
-//    private int mongoPort;
-//
-//    @Value("${spring.data.mongodb.database}")
-//    private String mongoDatabase;
-//
-//    @Value(value = "${spring.session.mongodb.collection-name}")
-//    private String mongoCollection;
-//
-//    private MongoClient mongoClient;
-//    private MongoDatabase database;
-//    private MongoCollection<Document> collection;
+    private final ApiService apiService;
+    // WebSocket连接的自动刷新间隔（毫秒）
+    private static final long REFRESH_INTERVAL = 60 * 60 * 1000; // 60分钟
 
     // MongoDB连接相关配置
     private static final String MONGO_HOST = "localhost";
@@ -48,79 +38,96 @@ public class WebSocketClient {
     private MongoDatabase database;
     private MongoCollection<Document> collection;
 
-    public WebSocketClient(TokenService tokenService) {
-        this.tokenService = tokenService;
+    @Autowired
+    public WebSocketClient(ApiService apiService) {
+        this.apiService = apiService;
         this.httpClient = new OkHttpClient();
 
-        // 初始化MongoDB连接  spring.data.mongodb.uri=mongodb://localhost:27017/MonitorSysDb
-//        mongoClient = MongoClients.create("mongodb://" + mongoHost + ":" + mongoPort);
-//        database = mongoClient.getDatabase(mongoDatabase);
-//        collection = database.getCollection(mongoCollection);
         mongoClient = MongoClients.create("mongodb://" + MONGO_HOST + ":" + MONGO_PORT);
         database = mongoClient.getDatabase(MONGO_DATABASE);
         collection = database.getCollection(MONGO_COLLECTION);
     }
+//    @Override
+//    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+////        配置定时任务：
+////        设置任务的固定延迟时间，并指定要执行的方法。
+////        将reconnectWebSocket方法作为定时任务，使其每隔指定的刷新间隔自动执行。
+//        taskRegistrar.addFixedDelayTask(this::reconnectWebSocket, REFRESH_INTERVAL);
+//    }
+//
+//    private void reconnectWebSocket() {
+//        //        先关闭
+//        closeConnection();
+//        // 重新连接WebSocket
+//        connectAndReceiveData();
+//    }
 
+    //    // 将数据存储到MongoDB数据库
     private void storeData(JSONObject data) {
-        // 将数据存储到MongoDB数据库
-        // 在这里实现将数据存储到MongoDB的逻辑
+        // 实现将数据存储到MongoDB
         Document document = Document.parse(data.toString());
         collection.insertOne(document);
     }
 
-
     public void connectAndReceiveData() {
+        String accessToken = null;  //发送登录请求获取token
         try {
-            String accessToken = tokenService.getToken();
-            if (accessToken == null) {
-                System.out.println("获取AccessToken失败");
-                return;
+            accessToken = apiService.getToken();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+//        String accessToken = MyApplicationRunner.token; //获取动态刷新的token
+        if (accessToken == null) {
+            System.out.println("connectAndReceiveData——WebSocketClient获取AccessToken失败");
+            return;
+        }
+
+        Request request = new Request.Builder()
+                .url("ws://bs.uniseas.com.cn/apiv1/target/ws/" + accessToken)
+                .build();
+        WebSocketListener webSocketListener = new WebSocketListener() {
+            @Override
+            public void onOpen(WebSocket webSocket, Response response) {
+                System.out.println("webSocketListener——WebSocket连接已建立");
             }
 
-            Request request = new Request.Builder()
-                    .url("ws://bs.uniseas.com.cn/apiv1/target/ws/" + accessToken)
-                    .build();
+            @Override
+            public void onMessage(WebSocket webSocket, String text) {
+                System.out.println("webSocketListener——系统收到消息：" + text);
+                parseAndStoreData(text);
+            }
 
-            WebSocketListener webSocketListener = new WebSocketListener() {
-                @Override
-                public void onOpen(WebSocket webSocket, Response response) {
-                    System.out.println("WebSocket连接已建立");
-                }
+            @Override
+            public void onClosed(WebSocket webSocket, int code, String reason) {
+                System.out.println("webSocketListener——WebSocket连接已关闭");
+                System.out.println("webSocketListener——WebSocket closed with code " + code + ", reason: " + reason);
 
-                @Override
-                public void onMessage(WebSocket webSocket, String text) {
-                    System.out.println("收到消息：" + text);
-                    parseAndStoreData(text);
-                }
+            }
 
-                @Override
-                public void onClosed(WebSocket webSocket, int code, String reason) {
-                    System.out.println("WebSocket连接已关闭");
-                }
+            @Override
+            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+                System.out.println("webSocketListener——WebSocket连接失败: " + t.getMessage());
 
-                @Override
-                public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                    System.out.println("WebSocket连接失败: " + t.getMessage());
-                }
-            };
+            }
+        };
 
-            webSocket = httpClient.newWebSocket(request, webSocketListener);
-        } catch (IOException e) {
-            System.out.println("无法建立WebSocket连接: " + e.getMessage());
-        }
+        webSocket = httpClient.newWebSocket(request, webSocketListener);
     }
 
     public void closeConnection() {
         if (webSocket != null) {
             webSocket.cancel();
             webSocket = null;
-            System.out.println("WebSocket连接已关闭");
+            System.out.println("closeConnection——WebSocket连接关闭");
         } else {
-            System.out.println("WebSocket连接已经关闭");
+            System.out.println("closeConnection——WebSocket连接已经关闭");
         }
     }
 
+
     private void parseAndStoreData(String message) {
+        System.out.println("parseAndStoreData——接收到的数据: " + message);
+
         try {
             JSONArray jsonArray = new JSONArray(message);
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -132,6 +139,4 @@ public class WebSocketClient {
             System.out.println("解析数据出错: " + e.getMessage());
         }
     }
-
-
 }

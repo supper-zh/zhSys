@@ -5,17 +5,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * 船舶详细信息实体类
  */
-@Document(collection = "ship_detail")
-public class ShipDetail {
+@Document(collection = "shipDetail")
+public class ShipInfo {
     @Id
     private String id;
     //ais 动态信息在websocket中就体现了====ship类
-    private String targetId; // 目标ID
-    private double mmsi; // MMSI
-    private double length; // 长度
+    private String targetId; // 目标ID@
+    private double mmsi; // MMSI@
+    private double length; // 长度@
     private double imo; // AIS IMO
-    private long timestamp; // 时间戳
-    private String callSign; // 呼号
+
+    private long timestamp; // 时间戳@
+    private String callSign; // 呼号@
     private int shipClass; // AIS级别
     private String vendorId; // 制造商
     private int shipType; // 船的类型
@@ -25,10 +26,42 @@ public class ShipDetail {
     private String destination; // 目的港
     private double draught; // 吃水
 
+    private String etaTime;
+
     // Getter and Setter methods
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "ShipDetail{" +
+                "id='" + id + '\'' +
+                ", targetId='" + targetId + '\'' +
+                ", mmsi=" + mmsi +
+                ", length=" + length +
+                ", imo=" + imo +
+                ", timestamp=" + timestamp +
+                ", callSign='" + callSign + '\'' +
+                ", shipClass=" + shipClass +
+                ", vendorId='" + vendorId + '\'' +
+                ", shipType=" + shipType +
+                ", vesselName='" + vesselName + '\'' +
+                ", width=" + width +
+                ", nationality='" + nationality + '\'' +
+                ", destination='" + destination + '\'' +
+                ", draught=" + draught +
+                ", etaTime='" + etaTime + '\'' +
+                '}';
+    }
+
+    public String getEtaTime() {
+        return etaTime;
+    }
+
+    public void setEtaTime(String etaTime) {
+        this.etaTime = etaTime;
     }
 
     public void setId(String id) {

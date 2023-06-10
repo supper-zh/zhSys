@@ -1,6 +1,7 @@
 package com.sea.zh.repository;
 
 import com.sea.zh.model.Ship;
+import com.sea.zh.model.ShipInfo;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -59,6 +60,13 @@ public  class ShipRepositoryImpl implements ShipRepository {
     public List<Ship> findByTimestampBetween(long startTimestamp, long endTimestamp) {
         Query query = Query.query(Criteria.where("timestamp").gte(startTimestamp).lte(endTimestamp));
         return mongoTemplate.find(query, Ship.class);
+    }
+
+    @Override
+    public List<ShipInfo> findShipDetail(String targetId, int mmsi) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("targetId").is(targetId).and("mmsi").is(mmsi));
+        return mongoTemplate.find(query, ShipInfo.class);
     }
 
     @Override
